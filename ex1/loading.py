@@ -2,43 +2,40 @@ import sys
 import importlib
 
 
-def check_dependency(name):
+def  check_dependency(name):
     try:
         module = importlib.import_module(name)
-        version = getattr(module, "__version__", "unknown")
+        version = getattr(module, "__version__", "unknown") # get the attributs or unknown as default safly
         return True, version
     except ImportError:
         return False, None
 
 
-def show_dependency_status():
-    dependencies = ["pandas", "numpy", "matplotlib"]
-    optional = "requests"
-
+def show_dependency_status() -> bool:
+    dependencies = {
+		"pandas": "Data manipulation ready",
+		"numpy": "Numerical computation ready",
+		"matplotlib": "Visualization ready",
+		"requests": "Network access ready"
+	}
     all_ok = True
 
     print("LOADING STATUS: Loading programs...")
     print("Checking dependencies:")
 
-    for dep in dependencies:
-        ok, version = check_dependency(dep)
+    for lab, status in dependencies.items():
+        ok, version = check_dependency(lab)
         if ok:
-            print(f"[OK] {dep} ({version}) - Ready")
+                print(f"[OK] {lab} ({version}) - {status}")
         else:
-            print(f"[MISSING] {dep} - Not installed")
+            print(f"[MISSING] {lab} - Not installed")
             all_ok = False
-
-    ok, version = check_dependency(optional)
-    if ok:
-        print(f"[OK] {optional} ({version}) - Network access ready")
-    else:
-        print(f"[OPTIONAL] {optional} not installed (skipping API mode)")
 
     return all_ok
 
 
 def generate_matrix_data():
-    import numpy as np
+    import numpy as np # numpy
 
     x = np.arange(1000)
     y = np.random.normal(0, 1, 1000)
