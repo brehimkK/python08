@@ -45,6 +45,7 @@ def handle_outside() -> None:
     print(f"python -m venv {env_placeholder}")
     print(f"source {env_placeholder}/bin/activate # On Unix")
     print(f"{env_placeholder}\\Scripts\\activate # On Windows")
+    print("\nThen run this program again.")
 
 
 def handle_inside() -> None:

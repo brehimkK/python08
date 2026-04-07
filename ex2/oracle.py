@@ -1,11 +1,19 @@
 import os
 import sys
-from dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv
+    dotenv_available = True
+except ModuleNotFoundError:
+    dotenv_available = False
+    print(
+        "[WARNING] python-dotenv is not installed. "
+        ".env file will be ignored."
+    )
+    sys.exit(1)
 
 
 def load_config():
-    # Load .env file (if exists)
-    load_dotenv()
+    load_dotenv(dotenv_path=".env")
 
     config = {
         "MATRIX_MODE": os.getenv("MATRIX_MODE"),
@@ -34,10 +42,8 @@ def display_config(config):
     print("ORACLE STATUS: Reading the Matrix...\n")
     print("Configuration loaded:")
 
-    # Mode
     print(f"Mode: {mode if mode else 'undefined'}")
 
-    # Database behavior (no hardcoded URLs)
     if config["DATABASE_URL"]:
         if mode == "production":
             print("Database: Connected to production instance")
@@ -46,16 +52,14 @@ def display_config(config):
     else:
         print("Database: Not configured")
 
-    # API
     if config["API_KEY"]:
         print("API Access: Authenticated")
     else:
         print("API Access: Missing key")
 
-    # Log level
-    print(f"Log Level: {config['LOG_LEVEL'] if config['LOG_LEVEL'] else 'undefined'}")
+    log_level = config["LOG_LEVEL"] if config["LOG_LEVEL"] else "undefined"
+    print(f"Log Level: {log_level}")
 
-    # Zion
     if config["ZION_ENDPOINT"]:
         print("Zion Network: Online")
     else:
@@ -65,13 +69,11 @@ def display_config(config):
 def security_check():
     print("\nEnvironment security check:")
 
-    # .env check
     if os.path.exists(".env"):
         print("[OK] .env file properly configured")
     else:
         print("[WARN] .env file missing")
 
-    # .gitignore check
     if os.path.exists(".gitignore"):
         with open(".gitignore", "r") as f:
             content = f.read()

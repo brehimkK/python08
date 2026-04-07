@@ -2,72 +2,68 @@ import sys
 import importlib
 
 
-def  check_dependency(name):
-    try:
-        module = importlib.import_module(name)
-        version = getattr(module, "__version__", "unknown") # get the attributs or unknown as default safly
-        return True, version
-    except ImportError:
-        return False, None
+REQUIRED_PACKAGES = ["pandas", "numpy", "matplotlib"]
 
 
-def show_dependency_status() -> bool:
-    dependencies = {
-		"pandas": "Data manipulation ready",
-		"numpy": "Numerical computation ready",
-		"matplotlib": "Visualization ready",
-		"requests": "Network access ready"
-	}
-    all_ok = True
-
+def check_dependencies():
     print("LOADING STATUS: Loading programs...")
-    print("Checking dependencies:")
+    print("Checking dependencies:\n")
 
-    for lab, status in dependencies.items():
-        ok, version = check_dependency(lab)
-        if ok:
-                print(f"[OK] {lab} ({version}) - {status}")
-        else:
-            print(f"[MISSING] {lab} - Not installed")
-            all_ok = False
+    missing = []
+    installed = {}
 
-    return all_ok
+    for pkg in REQUIRED_PACKAGES:
+        try:
+            module = importlib.import_module(pkg)
+            try:
+                from importlib.metadata import version
+                ver = version(pkg)
+            except Exception:
+                ver = "unknown"
+
+            print(f"[OK] {pkg} ({ver}) - Ready")
+            installed[pkg] = module
+
+        except ImportError:
+            print(f"[MISSING] {pkg} - Not installed")
+            missing.append(pkg)
+    try:
+        module = importlib.import_module("requests")
+        from importlib.metadata import version
+        print(f"[OK] requests ({version('requests')}) - Optional")
+    except Exception:
+        pass
+
+    if missing:
+        print("\nSome dependencies are missing.\n")
+        print("Install with pip:")
+        print("  pip install -r requirements.txt\n")
+        print("Install with Poetry:")
+        print("  poetry install\n")
+        sys.exit(1)
+
+    return installed
 
 
-def generate_matrix_data():
-    import numpy as np # numpy
+def generate_data(np):
+    size = 1000
 
-    x = np.arange(1000)
-    y = np.random.normal(0, 1, 1000)
+    x = np.arange(size)
+    y = np.random.normal(0, 1, size)
 
     return x, y
 
 
-def analyze_data():
-    import pandas as pd
-
-    x, y = generate_matrix_data()
-
-    print("\nAnalyzing Matrix data...")
-    print(f"Processing {len(x)} data points...")
-
+def analyze_data(pd, x, y):
     df = pd.DataFrame({
         "index": x,
         "matrix_signal": y
     })
 
-    mean_value = df["matrix_signal"].mean()
-    std_value = df["matrix_signal"].std()
-
-    print(f"Mean signal: {mean_value:.4f}")
-    print(f"Std deviation: {std_value:.4f}")
-
     return df
 
 
-def create_visualization(df):
-    import matplotlib.pyplot as plt
-
+def visualize(plt, df):
     print("Generating visualization...\n")
 
     plt.figure()
@@ -84,18 +80,19 @@ def create_visualization(df):
 
 
 def main():
-    all_ok = show_dependency_status()
+    modules = check_dependencies()
 
-    if not all_ok:
-        print("\nMissing required dependencies.")
-        print("Install with pip:")
-        print("pip install -r requirements.txt")
-        print("\nOr install with Poetry:")
-        print("poetry install")
-        return
+    pd = modules["pandas"]
+    np = modules["numpy"]
+    plt = importlib.import_module("matplotlib.pyplot")
 
-    df = analyze_data()
-    create_visualization(df)
+    print("\nAnalyzing Matrix data...")
+    x, y = generate_data(np)
+
+    print(f"Processing {len(x)} data points...\n")
+
+    df = analyze_data(pd, x, y)
+    visualize(plt, df)
 
 
 if __name__ == "__main__":
